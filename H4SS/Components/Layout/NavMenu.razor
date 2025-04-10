@@ -2,94 +2,97 @@
 @inject NavigationManager NavigationManager
 @using BlazorBootstrap;
 @using Microsoft.AspNetCore.Authorization
+@inject IJSRuntime JSRuntime
 
 <div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
-        <a class="navbar-brand fw-bold" href="">
-            <img src="favicon.png" alt="H4SS Logo" class="navbar-logo me-2" /> Todo-List
+        <a class="navbar-brand fw-bold tooltip-container" href="" id="app-brand">
+            <img src="favicon.png" alt="H4SS Logo" class="navbar-logo" />
+            <span class="tooltip-text">Todo-List</span>
         </a>
     </div>
 </div>
 
-<input type="checkbox" title="Navigation menu" class="navbar-toggler" />
-
-<div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
+<div class="nav-scrollable">
     <nav class="nav flex-column">
-        <div class="nav-category">Main Menu</div>
-
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
+        <div class="nav-item">
+            <NavLink class="nav-link tooltip-container" href="" Match="NavLinkMatch.All" id="nav-home">
+                <i class="bi bi-house-door-fill custom-icon"></i>
+                <span class="tooltip-text">Home</span>
             </NavLink>
         </div>
 
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="counter">
-                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Counter
+        <div class="nav-item">
+            <NavLink class="nav-link tooltip-container" href="counter" id="nav-counter">
+                <i class="bi bi-plus-square-fill custom-icon"></i>
+                <span class="tooltip-text">Counter</span>
             </NavLink>
         </div>
 
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="weather">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Weather
+        <div class="nav-item">
+            <NavLink class="nav-link tooltip-container" href="weather" id="nav-weather">
+                <i class="bi bi-list-nested custom-icon"></i>
+                <span class="tooltip-text">Weather</span>
             </NavLink>
         </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="cprnr">
-                <span class="bi bi-person-badge" aria-hidden="true"></span> CPR Number
+        <div class="nav-item">
+            <NavLink class="nav-link tooltip-container" href="cprnr" id="nav-cprnr">
+                <i class="bi bi-person-badge custom-icon"></i>
+                <span class="tooltip-text">CPR Number</span>
             </NavLink>
         </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="todolist">
-                <span class="bi bi-list-task" aria-hidden="true"></span> Todo List
+        <div class="nav-item">
+            <NavLink class="nav-link tooltip-container" href="todolist" id="nav-todo">
+                <i class="bi bi-list-task custom-icon"></i>
+                <span class="tooltip-text">Todo List</span>
             </NavLink>
         </div>
 
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="roles">
-                <span class="bi bi-person-fill-nav-menu" aria-hidden="true"></span> Roles
+        <div class="nav-item">
+            <NavLink class="nav-link tooltip-container" href="roles" id="nav-roles">
+                <i class="bi bi-person-fill custom-icon"></i>
+                <span class="tooltip-text">Roles</span>
             </NavLink>
         </div>
 
         <div class="nav-divider"></div>
-        <div class="nav-category">Account</div>
 
-
-        @* Authenticated User *@
         <AuthorizeView>
             <Authorized>
-                <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="Account/Manage">
-                        <span class="bi bi-person-fill-nav-menu" aria-hidden="true"></span> 
-
-                        @context.User.Identity?.Name
-
-                        <!-- Check if the user is in the "Admin" role -->
-                        @if (context.User.IsInRole("Admin"))
-                        {
-                            <span> (Admin)</span>
-                        }
+                <div class="nav-item">
+                    <NavLink class="nav-link tooltip-container" href="Account/Manage" id="nav-account">
+                        <i class="bi bi-person-fill custom-icon"></i>
+                        <span class="tooltip-text">
+                            @context.User.Identity?.Name
+                            @if (context.User.IsInRole("Admin"))
+                            {
+                                <span> (Admin)</span>
+                            }
+                        </span>
                     </NavLink>
                 </div>
-                <div class="nav-item px-3">
+                <div class="nav-item">
                     <form action="Account/Logout" method="post">
                         <AntiforgeryToken />
                         <input type="hidden" name="ReturnUrl" value="@currentUrl" />
-                        <button type="submit" class="nav-link logout-button">
-                            <span class="bi bi-arrow-bar-left-nav-menu" aria-hidden="true"></span> Logout
+                        <button type="submit" class="nav-link logout-button tooltip-container" id="nav-logout">
+                            <i class="bi bi-arrow-bar-left custom-icon"></i>
+                            <span class="tooltip-text">Logout</span>
                         </button>
                     </form>
                 </div>
             </Authorized>
             <NotAuthorized>
-                <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="Account/Register">
-                        <span class="bi bi-person-nav-menu" aria-hidden="true"></span> Register
+                <div class="nav-item">
+                    <NavLink class="nav-link tooltip-container" href="Account/Register" id="nav-register">
+                        <i class="bi bi-person custom-icon"></i>
+                        <span class="tooltip-text">Register</span>
                     </NavLink>
                 </div>
-                <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="Account/Login">
-                        <span class="bi bi-person-badge-nav-menu" aria-hidden="true"></span> Login
+                <div class="nav-item">
+                    <NavLink class="nav-link tooltip-container" href="Account/Login" id="nav-login">
+                        <i class="bi bi-person-badge custom-icon"></i>
+                        <span class="tooltip-text">Login</span>
                     </NavLink>
                 </div>
             </NotAuthorized>
@@ -104,7 +107,14 @@
     {
         currentUrl = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
         NavigationManager.LocationChanged += OnLocationChanged;
+    }
 
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JSRuntime.InvokeVoidAsync("setupTooltips");
+        }
     }
 
     private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
@@ -117,6 +127,24 @@
     {
         NavigationManager.LocationChanged -= OnLocationChanged;
     }
-
 }
 
+<script>
+    window.setupTooltips = function () {
+        // Get all tooltip containers
+        const tooltipContainers = document.querySelectorAll('.tooltip-container');
+
+        // For each container, add mouseenter event listener
+        tooltipContainers.forEach(container => {
+            container.addEventListener('mouseenter', function() {
+                const tooltip = this.querySelector('.tooltip-text');
+                if (!tooltip) return;
+
+                // Position tooltip next to its parent
+                const rect = this.getBoundingClientRect();
+                tooltip.style.top = rect.top + (rect.height / 2) + 'px';
+                tooltip.style.left = (rect.right + 10) + 'px';
+            });
+        });
+    };
+</script>

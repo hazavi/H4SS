@@ -1,93 +1,136 @@
-﻿@page "/cprnr"
-@using Microsoft.AspNetCore.Identity
+﻿@page "/CprNr"
 @using H4SS.Data
-@using System.ComponentModel.DataAnnotations
-@inject UserManager<ApplicationUser> UserManager
-@inject TodoDbContext TodoDbContext
-@inject NavigationManager NavigationManager
-@inject AuthenticationStateProvider AuthenticationStateProvider
-@using Microsoft.AspNetCore.Authorization
+@inject Microsoft.AspNetCore.Components.Authorization.AuthenticationStateProvider _authenticationStateProvider
+@inject NavigationManager _navigationManager
+@inject TodoDbContext TodoContext
+@using Microsoft.EntityFrameworkCore
 
-@attribute [Authorize(Policy = "AuthenticatedUser")]
-<PageTitle>CPR Number</PageTitle>
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Policy = "AuthenticatedUser")]
 
-<h3>Enter Your CPR Number</h3>
+<div class="cpr-container">
+    <div class="cpr-card">
+        <div class="cpr-header">
+            <h3>CPR Verification</h3>
+        </div>
 
-@if (errorMessage != null)
-{
-    <div class="alert alert-danger">@errorMessage</div>
-}
-
-<EditForm Model="Input" OnValidSubmit="HandleSubmit">
-    <DataAnnotationsValidator />
-    <ValidationSummary />
-
-    <div class="form-floating mb-3">
-        <InputText id="user" class="form-control" @bind-Value="AuthenticatedUser" disabled />
-        <label for="user">User</label>
-    </div>
-
-    <div class="form-floating mb-3">
-        <InputText id="cprNr" class="form-control" @bind-Value="Input.CprNr" />
-        <label for="cprNr">CPR Number</label>
-    </div>
-
-    <button type="submit" class="btn btn-primary">Submit</button>
-</EditForm>
-
-@code {
-    private string? AuthenticatedUser;
-    private InputModel Input = new();
-    private string? errorMessage;
-
-    private class InputModel
-    {
-        [Required]
-        [StringLength(10, MinimumLength = 10, ErrorMessage = "CPR number must be 10 digits.")]
-        public string CprNr { get; set; } = string.Empty;
-    }
-
-    protected override async Task OnInitializedAsync()
-    {
-        // Use AuthenticationStateProvider to get the current user
-        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-        var user = authState.User;
-
-        if (user.Identity?.IsAuthenticated == true)
+        @if (!string.IsNullOrEmpty(_userName))
         {
-            var appUser = await UserManager.GetUserAsync(user);
-            AuthenticatedUser = appUser?.UserName;
-        }
-    }
-
-    private async Task HandleSubmit()
-    {
-        if (AuthenticatedUser == null)
-        {
-            errorMessage = "User not authenticated.";
-            return;
+            <div class="user-info">
+                <strong>@_userName</strong>
+                @if (!string.IsNullOrEmpty(_userRoles))
+                {
+                    <div>Role: @_userRoles</div>
+                }
+            </div>
         }
 
-        var existingCpr = TodoDbContext.Cpr.FirstOrDefault(c => c.User == AuthenticatedUser);
-        if (existingCpr == null)
-        {
-            // Save CPR number for the first time
-            var newCpr = new Cpr { User = AuthenticatedUser, CprNr = Input.CprNr };
-            TodoDbContext.Cpr.Add(newCpr);
-            await TodoDbContext.SaveChangesAsync();
-            NavigationManager.NavigateTo("/todolist");
-        }
-        else
-        {
-            // Validate CPR number
-            if (existingCpr.CprNr == Input.CprNr)
+        <div class="instructions">
+            @if (HasCprNumber)
             {
-                NavigationManager.NavigateTo("/todolist");
+                <p>You already have a CPR number registered. Please confirm your CPR number to proceed.</p>
             }
             else
             {
-                errorMessage = "Invalid CPR number.";
+                <p>Please enter your CPR number to register.</p>
             }
+        </div>
+
+        <div class="form-group">
+            <label for="cprInput">CPR Number</label>
+            <EditForm Model="this" OnValidSubmit="SubmitCprNumber">
+                <InputText id="cprInput" class="form-control" @bind-Value="CprNumber" placeholder="Enter your CPR number" />
+            </EditForm>
+        </div>
+
+        <button class="btn btn-primary" @onclick="SubmitCprNumber">
+            @(HasCprNumber ? "Confirm" : "Register")
+        </button>
+
+        @if (!string.IsNullOrEmpty(Message))
+        {
+            <div class="@(Message.Contains("successfully") ? "text-success" : "text-danger")">
+                @Message
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    private string? _userName;
+    private string CprNumber { get; set; } = string.Empty;
+    private string? Message { get; set; }
+    private bool HasCprNumber { get; set; } = false;
+    private string? StoredHashedCpr { get; set; }
+    private string? _userRoles;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await _authenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        _userName = user.Identity?.Name;
+
+        List<string> roles = user.Claims
+            .Where(c => c.Type == System.Security.Claims.ClaimTypes.Role)
+            .Select(c => c.Value)
+            .ToList();
+
+        _userRoles = string.Join(", ", roles);
+
+        // Check if the user already has a CPR number in the database
+        var existingCpr = await TodoContext.Cprs.FirstOrDefaultAsync(c => c.User == _userName);
+        if (existingCpr != null)
+        {
+            HasCprNumber = true;
+            StoredHashedCpr = existingCpr.CprNr;
+        }
+    }
+
+    private async Task SubmitCprNumber()
+    {
+        if (string.IsNullOrEmpty(CprNumber))
+        {
+            Message = "CPR number cannot be empty.";
+            return;
+        }
+
+        try
+        {
+            Codes.HashingHandler hashingHandler = new();
+
+            if (HasCprNumber)
+            {
+                // Verify the entered CPR number matches the stored hashed CPR number
+                if (hashingHandler.BCryptVerifyHashing2(CprNumber, StoredHashedCpr))
+                {
+                    Message = "CPR number confirmed successfully!";
+                }
+                else
+                {
+                    Message = "The entered CPR number does not match our records.";
+                }
+            }
+            else
+            {
+                // Hash the CPR number and save it to the database
+                string hashedCpr = hashingHandler.BCryptHashing2(CprNumber);
+
+                var cpr = new Cpr
+                    {
+                        User = _userName,
+                        CprNr = hashedCpr,
+                    };
+
+                TodoContext.Add(cpr);
+                await TodoContext.SaveChangesAsync();
+
+                Message = "CPR number saved successfully!";
+                CprNumber = string.Empty; // Clear the input field
+            }
+        }
+        catch (Exception ex)
+        {
+            Message = $"An error occurred: {ex.Message}";
         }
     }
 }

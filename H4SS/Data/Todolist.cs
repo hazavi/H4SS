@@ -2,14 +2,13 @@
 
 namespace H4SS.Data
 {
-    public class Todolist
+    public partial class Todolist
     {
-        [Key]
         public int Id { get; set; }
         public int UserId { get; set; }
-        public string Item { get; set; } = string.Empty;
+        public string Item { get; set; } = null!;
 
         // Navigation property for the related Cpr
-        public Cpr Cpr { get; set; } = null!;
+        public virtual Cpr User { get; set; } = null!;
     }
 }

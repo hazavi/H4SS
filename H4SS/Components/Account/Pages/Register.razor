@@ -17,48 +17,67 @@
 
 <PageTitle>Register</PageTitle>
 
-<h1>Register</h1>
+<div class="register-container">
+    <div class="register-card">
+        <div class="register-header">
+            <h1>Create Account</h1>
+        </div>
 
-<div class="row">
-    <div class="col-lg-6">
-        <StatusMessage Message="@Message" />
-        <EditForm Model="Input" asp-route-returnUrl="@ReturnUrl" method="post" OnValidSubmit="RegisterUser" FormName="register">
-            <DataAnnotationsValidator />
-            <h2>Create a new account.</h2>
-            <hr />
-            <ValidationSummary class="text-danger" role="alert" />
-            <div class="form-floating mb-3">
-                <InputText @bind-Value="Input.Email" id="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="name@example.com" />
-                <label for="Input.Email">Email</label>
-                <ValidationMessage For="() => Input.Email" class="text-danger" />
+        @if (!string.IsNullOrEmpty(Message))
+        {
+            <div class="alert alert-danger" role="alert">
+                @Message
             </div>
-            <div class="form-floating mb-3">
-                <InputText type="password" @bind-Value="Input.Password" id="Input.Password" class="form-control" autocomplete="new-password" aria-required="true" placeholder="password" />
-                <label for="Input.Password">Password</label>
-                <ValidationMessage For="() => Input.Password" class="text-danger" />
+        }
+
+        <div class="row">
+            <div class="col-lg-6">
+                <EditForm Model="Input" method="post" OnValidSubmit="RegisterUser" FormName="register" class="register-form">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary class="text-danger validation-summary" role="alert" />
+
+                    <div class="form-floating">
+                        <InputText @bind-Value="Input.Email" id="Input.Email" class="form-control"
+                                   autocomplete="username" aria-required="true" placeholder="name@example.com" />
+                        <label for="Input.Email">Email</label>
+                        <ValidationMessage For="() => Input.Email" class="text-danger" />
+                    </div>
+
+                    <div class="form-floating">
+                        <InputText type="password" @bind-Value="Input.Password" id="Input.Password"
+                                   class="form-control" autocomplete="new-password" aria-required="true"
+                                   placeholder="password" />
+                        <label for="Input.Password">Password</label>
+                        <ValidationMessage For="() => Input.Password" class="text-danger" />
+                    </div>
+
+                    <div class="form-floating">
+                        <InputText type="password" @bind-Value="Input.ConfirmPassword" id="Input.ConfirmPassword"
+                                   class="form-control" autocomplete="new-password" aria-required="true"
+                                   placeholder="password" />
+                        <label for="Input.ConfirmPassword">Confirm Password</label>
+                        <ValidationMessage For="() => Input.ConfirmPassword" class="text-danger" />
+                    </div>
+
+                    <div class="form-floating">
+                        <InputSelect id="Input.Role" class="form-select" @bind-Value="Input.Role">
+                            <option value="">Select a role</option>
+                            <option value="Admin">Admin</option>
+                        </InputSelect>
+                        <label for="Input.Role">Role</label>
+                        <ValidationMessage For="() => Input.Role" class="text-danger" />
+                    </div>
+
+                    <button type="submit" class="w-100 btn btn-lg btn-primary">Create Account</button>
+
+                    <div class="text-center mt-3">
+                        <p class="text-muted">
+                            Already have an account? <a href="Account/Login">Sign In</a>
+                        </p>
+                    </div>
+                </EditForm>
             </div>
-            <div class="form-floating mb-3">
-                <InputText type="password" @bind-Value="Input.ConfirmPassword" id="Input.ConfirmPassword" class="form-control" autocomplete="new-password" aria-required="true" placeholder="password" />
-                <label for="Input.ConfirmPassword">Confirm Password</label>
-                <ValidationMessage For="() => Input.ConfirmPassword" class="text-danger" />
-            </div>
-            <div class="form-floating mb-3">
-                <InputSelect id="Input.Role" class="form-select" @bind-Value="Input.Role">
-                    <option value="">Select a role</option>
-                    <option value="Admin">Admin</option>
-                </InputSelect>
-                <label for="Input.Role">Role</label>
-                <ValidationMessage For="() => Input.Role" class="text-danger" />
-            </div>
-            <button type="submit" class="w-100 btn btn-lg btn-primary">Register</button>
-        </EditForm>
-    </div>
-    <div class="col-lg-4 col-lg-offset-2">
-        <section>
-            <h3>Use another service to register.</h3>
-            <hr />
-            <ExternalLoginPicker />
-        </section>
+        </div>
     </div>
 </div>
 

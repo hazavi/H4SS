@@ -1,16 +1,46 @@
 ﻿@page "/"
-@using Microsoft.AspNetCore.Authorization
+
+@using Microsoft.AspNetCore.Identity
+@inject Codes.SymmetriskEncryptionHandler symmetriskEncryptionHandler
+@inject Codes.AsymmetriskEncryption asymmetriskEncryption
+@inject Microsoft.AspNetCore.Components.Authorization.AuthenticationStateProvider _authenticationStateProvider
+@inject Microsoft.AspNetCore.Components.NavigationManager _navigationManager
+@inject IServiceProvider _serviceProvider
+@inject UserManager<Data.ApplicationUser> _userManager;
 
 <PageTitle>Home</PageTitle>
-
-<h1>Hello, world!</h1>
 
 
 <AuthorizeView>
     <Authorized>
-        Hello @context.User.Identity?.Name!
+        <h1>Du ER logget ind.</h1>
+
     </Authorized>
     <NotAuthorized>
-        You are not logged in. Login <a href="Account/Login"> here!</a>
+        <h1>Du er IKKE logget ind.</h1>
+
     </NotAuthorized>
+    <Authorized>
+        <h1>Du ER Admin</h1>
+
+    </Authorized>
 </AuthorizeView>
+
+@code {
+    private bool _isAuthenticated;
+    private bool _hasRedirected = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await _authenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            await Task.Delay(300);
+            _navigationManager.NavigateTo("/CprNr");
+        }
+    }
+
+    
+}
