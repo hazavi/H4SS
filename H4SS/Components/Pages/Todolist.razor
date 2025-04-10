@@ -1,0 +1,82 @@
+﻿@* @page "/todolist"
+@using H4SS.Data
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.Components.Authorization
+@inject TodoDbContext TodoDbContext
+@inject UserManager<ApplicationUser> UserManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@using Microsoft.AspNetCore.Authorization
+
+@attribute [Authorize(Policy = "AuthenticatedUser")]
+<PageTitle>Todo List</PageTitle>
+
+<h3>Your Todo List</h3>
+
+@if (tasks == null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <ul>
+        @foreach (var task in tasks)
+        {
+            <li>@task.Item</li> <!-- Use the Item property to display the task description -->
+        }
+    </ul>
+}
+
+<EditForm Model="NewTask" OnValidSubmit="AddTask">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="form-floating mb-3">
+        <InputText id="task" class="form-control" @bind-Value="NewTask.Item" />
+        <label for="task">New Task</label>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Add Task</button>
+</EditForm>
+
+@code {
+    private List<Todolist>? tasks;
+    private Todolist NewTask = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity?.IsAuthenticated == true)
+        {
+            var appUser = await UserManager.GetUserAsync(user);
+            if (appUser != null)
+            {
+                tasks = TodoDbContext.Todolist.Where(t => t.UserId == appUser.Id).ToList(); // Ensure UserId is a string
+            }
+        }
+    }
+
+    private async Task AddTask()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity?.IsAuthenticated == true)
+        {
+            var appUser = await UserManager.GetUserAsync(user);
+            if (appUser != null)
+            {
+                NewTask.UserId = appUser.Id; // Assign UserId as a string
+                TodoDbContext.Todolist.Add(NewTask);
+                await TodoDbContext.SaveChangesAsync();
+
+                // Refresh the tasks list
+                tasks = TodoDbContext.Todolist.Where(t => t.UserId == appUser.Id).ToList();
+                NewTask = new(); // Reset the form
+            }
+        }
+    }
+}
+
+ *@

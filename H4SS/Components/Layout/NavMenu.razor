@@ -1,0 +1,122 @@
+﻿@implements IDisposable
+@inject NavigationManager NavigationManager
+@using BlazorBootstrap;
+@using Microsoft.AspNetCore.Authorization
+
+<div class="top-row ps-3 navbar navbar-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand fw-bold" href="">
+            <img src="favicon.png" alt="H4SS Logo" class="navbar-logo me-2" /> Todo-List
+        </a>
+    </div>
+</div>
+
+<input type="checkbox" title="Navigation menu" class="navbar-toggler" />
+
+<div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
+    <nav class="nav flex-column">
+        <div class="nav-category">Main Menu</div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="counter">
+                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Counter
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="weather">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Weather
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="cprnr">
+                <span class="bi bi-person-badge" aria-hidden="true"></span> CPR Number
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="todolist">
+                <span class="bi bi-list-task" aria-hidden="true"></span> Todo List
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="roles">
+                <span class="bi bi-person-fill-nav-menu" aria-hidden="true"></span> Roles
+            </NavLink>
+        </div>
+
+        <div class="nav-divider"></div>
+        <div class="nav-category">Account</div>
+
+
+        @* Authenticated User *@
+        <AuthorizeView>
+            <Authorized>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="Account/Manage">
+                        <span class="bi bi-person-fill-nav-menu" aria-hidden="true"></span> 
+
+                        @context.User.Identity?.Name
+
+                        <!-- Check if the user is in the "Admin" role -->
+                        @if (context.User.IsInRole("Admin"))
+                        {
+                            <span> (Admin)</span>
+                        }
+                    </NavLink>
+                </div>
+                <div class="nav-item px-3">
+                    <form action="Account/Logout" method="post">
+                        <AntiforgeryToken />
+                        <input type="hidden" name="ReturnUrl" value="@currentUrl" />
+                        <button type="submit" class="nav-link logout-button">
+                            <span class="bi bi-arrow-bar-left-nav-menu" aria-hidden="true"></span> Logout
+                        </button>
+                    </form>
+                </div>
+            </Authorized>
+            <NotAuthorized>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="Account/Register">
+                        <span class="bi bi-person-nav-menu" aria-hidden="true"></span> Register
+                    </NavLink>
+                </div>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="Account/Login">
+                        <span class="bi bi-person-badge-nav-menu" aria-hidden="true"></span> Login
+                    </NavLink>
+                </div>
+            </NotAuthorized>
+        </AuthorizeView>
+    </nav>
+</div>
+
+@code {
+    private string? currentUrl;
+
+    protected override async Task OnInitializedAsync()
+    {
+        currentUrl = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
+        NavigationManager.LocationChanged += OnLocationChanged;
+
+    }
+
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        currentUrl = NavigationManager.ToBaseRelativePath(e.Location);
+        StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        NavigationManager.LocationChanged -= OnLocationChanged;
+    }
+
+}
+

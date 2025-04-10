@@ -1,0 +1,105 @@
+﻿.roles-admin-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.admin-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    border-bottom: 3px solid #f8f9fa;
+    padding-bottom: 1rem;
+}
+
+    .admin-header h1 {
+        font-weight: 300;
+        color: #343a40;
+        margin-bottom: 0;
+    }
+
+    .admin-header i {
+        font-size: 1.75rem;
+        color: #0d6efd;
+    }
+
+.card {
+    border-radius: 0.5rem;
+    overflow: hidden;
+    border: none;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+    .card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+    }
+
+.card-header {
+    border-bottom: none;
+    padding: 1rem 1.5rem;
+}
+
+    .card-header h3 {
+        font-size: 1.2rem;
+        font-weight: 500;
+    }
+
+.card-body {
+    padding: 1.5rem;
+}
+
+.table th {
+    font-weight: 500;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
+}
+
+.table td {
+    vertical-align: middle;
+    padding: 0.75rem 1rem;
+}
+
+.table-hover tbody tr:hover {
+    background-color: rgba(13, 110, 253, 0.05);
+}
+
+.badge {
+    font-weight: 500;
+    padding: 0.5em 0.8em;
+}
+
+.form-floating > .form-control,
+.form-floating > .form-select {
+    height: calc(3.5rem + 2px);
+    padding: 1rem 0.75rem;
+}
+
+.form-floating > label {
+    padding: 1rem 0.75rem;
+}
+
+.btn-primary {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+    padding: 0.5rem 1.5rem;
+    font-weight: 500;
+    box-shadow: 0 2px 4px rgba(13, 110, 253, 0.3);
+    transition: all 0.2s;
+}
+
+    .btn-primary:hover {
+        background-color: #0b5ed7;
+        border-color: #0a58ca;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 6px rgba(13, 110, 253, 0.4);
+    }
+
+.access-denied {
+    max-width: 600px;
+    margin: 4rem auto;
+}
+
+.bi {
+    vertical-align: -0.125em;
+}

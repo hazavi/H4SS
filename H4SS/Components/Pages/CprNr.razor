@@ -1,0 +1,93 @@
+﻿@page "/cprnr"
+@using Microsoft.AspNetCore.Identity
+@using H4SS.Data
+@using System.ComponentModel.DataAnnotations
+@inject UserManager<ApplicationUser> UserManager
+@inject TodoDbContext TodoDbContext
+@inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@using Microsoft.AspNetCore.Authorization
+
+@attribute [Authorize(Policy = "AuthenticatedUser")]
+<PageTitle>CPR Number</PageTitle>
+
+<h3>Enter Your CPR Number</h3>
+
+@if (errorMessage != null)
+{
+    <div class="alert alert-danger">@errorMessage</div>
+}
+
+<EditForm Model="Input" OnValidSubmit="HandleSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="form-floating mb-3">
+        <InputText id="user" class="form-control" @bind-Value="AuthenticatedUser" disabled />
+        <label for="user">User</label>
+    </div>
+
+    <div class="form-floating mb-3">
+        <InputText id="cprNr" class="form-control" @bind-Value="Input.CprNr" />
+        <label for="cprNr">CPR Number</label>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Submit</button>
+</EditForm>
+
+@code {
+    private string? AuthenticatedUser;
+    private InputModel Input = new();
+    private string? errorMessage;
+
+    private class InputModel
+    {
+        [Required]
+        [StringLength(10, MinimumLength = 10, ErrorMessage = "CPR number must be 10 digits.")]
+        public string CprNr { get; set; } = string.Empty;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Use AuthenticationStateProvider to get the current user
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity?.IsAuthenticated == true)
+        {
+            var appUser = await UserManager.GetUserAsync(user);
+            AuthenticatedUser = appUser?.UserName;
+        }
+    }
+
+    private async Task HandleSubmit()
+    {
+        if (AuthenticatedUser == null)
+        {
+            errorMessage = "User not authenticated.";
+            return;
+        }
+
+        var existingCpr = TodoDbContext.Cpr.FirstOrDefault(c => c.User == AuthenticatedUser);
+        if (existingCpr == null)
+        {
+            // Save CPR number for the first time
+            var newCpr = new Cpr { User = AuthenticatedUser, CprNr = Input.CprNr };
+            TodoDbContext.Cpr.Add(newCpr);
+            await TodoDbContext.SaveChangesAsync();
+            NavigationManager.NavigateTo("/todolist");
+        }
+        else
+        {
+            // Validate CPR number
+            if (existingCpr.CprNr == Input.CprNr)
+            {
+                NavigationManager.NavigateTo("/todolist");
+            }
+            else
+            {
+                errorMessage = "Invalid CPR number.";
+            }
+        }
+    }
+}

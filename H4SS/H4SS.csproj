@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>aspnet-H4SS-6fa57a6e-d13b-4a9a-a5b1-05fe11fb029d</UserSecretsId>
+    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Blazor.Bootstrap" Version="3.3.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="9.0.3" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.3" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.3" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.3" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.3" />
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.0" />
+    <PackageReference Include="QRCoder" Version="1.6.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="certificate.pfx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>
