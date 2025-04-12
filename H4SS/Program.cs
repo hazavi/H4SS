@@ -2,6 +2,7 @@ using H4SS.Codes;
 using H4SS.Components;
 using H4SS.Components.Account;
 using H4SS.Data;
+using H4SS.Services;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -21,6 +22,8 @@ builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuth
 builder.Services.AddScoped<SymmetriskEncryptionHandler>();
 builder.Services.AddScoped<HashingHandler>();
 builder.Services.AddScoped<AsymmetriskEncryption>();
+builder.Services.AddScoped<TodoService>();
+builder.Services.AddScoped<CprValidationService>();
 
 
 builder.Services.AddAuthentication(options =>
@@ -69,9 +72,12 @@ builder.Services.AddAuthorization(option =>
     });
 });
 
-string kestrelCertUrl = builder.Configuration.GetValue<string>("KestrelCertUrl");
+
+// Retrieve certificate details from secrets.json and expand %USERPROFILE%
+string kestrelCertUrl = Environment.ExpandEnvironmentVariables(builder.Configuration.GetValue<string>("KestrelCertUrl"));
 string kestrelCertPassword = builder.Configuration.GetValue<string>("KestrelCertPassword");
 
+// Update Kestrel configuration with the resolved certificate path and password
 builder.Configuration.GetSection("Kestrel:Endpoints:Https:Certificate:Path").Value = kestrelCertUrl;
 builder.Configuration.GetSection("Kestrel:Endpoints:Https:Certificate:Password").Value = kestrelCertPassword;
 
@@ -80,29 +86,11 @@ builder.WebHost.UseKestrel((context, serverOptions) =>
     serverOptions.Configure(context.Configuration.GetSection("Kestrel"))
     .Endpoint("HTTPS", listenOptions =>
     {
+        // Configure HTTPS with TLS 1.2
         listenOptions.HttpsOptions.SslProtocols = SslProtocols.Tls12;
     });
-
 });
 
-//builder.WebHost.ConfigureKestrel(options =>
-//{
-//    options.ListenAnyIP(5001, listenOptions =>
-//    {
-//        var cert = new X509Certificate2(kestrelCertUrl, kestrelCertPassword);
-//        listenOptions.UseHttps(cert);
-//    });
-//});
-
-//builder.WebHost.ConfigureKestrel(options =>
-//{
-//    options.ListenAnyIP(7058, listenOptions =>
-//    {
-//        var cert = X509Certificate2.CreateFromPem(kestrelCertUrl, kestrelCertPassword);
-//        listenOptions.UseHttps(cert);
-//    });
-//    options.ListenAnyIP(5072);
-//});
 
 
 

@@ -61,10 +61,10 @@
 
                     <div class="form-floating">
                         <InputSelect id="Input.Role" class="form-select" @bind-Value="Input.Role">
-                            <option value="">Select a role</option>
+                            <option value="">Authorized</option>
                             <option value="Admin">Admin</option>
                         </InputSelect>
-                        <label for="Input.Role">Role</label>
+                        <label for="Input.Role">Role (Optional)</label>
                         <ValidationMessage For="() => Input.Role" class="text-danger" />
                     </div>
 
@@ -109,7 +109,7 @@
 
         Logger.LogInformation("User created a new account with password.");
 
-        // Assign the selected role to the user
+        // Assign the selected role to the user only if one was selected
         if (!string.IsNullOrEmpty(Input.Role))
         {
             await UserManager.AddToRoleAsync(user, Input.Role);
@@ -175,7 +175,7 @@
         [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
         public string ConfirmPassword { get; set; } = "";
 
-        [Required]
+        // Removed [Required] attribute to make role selection optional
         [Display(Name = "Role")]
         public string Role { get; set; } = "";
     }

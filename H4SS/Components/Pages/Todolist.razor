@@ -1,6 +1,300 @@
 ﻿@page "/todolist"
+@inject NavigationManager _navigationManager
+@inject Microsoft.AspNetCore.Components.Authorization.AuthenticationStateProvider _authenticationStateProvider
+@inject H4SS.Services.CprValidationService CprValidationService
+@inject H4SS.Services.TodoService TodoService
+@inject IJSRuntime JSRuntime
+@using Microsoft.AspNetCore.Authorization
+@using H4SS.Models
+@implements IDisposable
+
+@attribute [Authorize(Policy = "AuthenticatedUser")]
+
+<div class="todo-container">
+    <h3 class="todo-title"><i class="bi bi-check2-square me-2"></i>Todo List</h3>
+
+    @if (IsCprValidated)
+    {
+        <div class="add-todo-container">
+            <div class="input-group">
+                <span class="input-group-text bg-white">
+                    <i class="bi bi-plus-circle text-primary"></i>
+                </span>
+                <input @bind="NewTodoItem" placeholder="Enter a new todo item" class="form-control border-start-0" />
+                <button @onclick="AddTodoItem" class="btn btn-primary">
+                    Add Task
+                </button>
+            </div>
+        </div>
+
+        @if (!TodoItems.Any())
+        {
+            <div class="empty-state">
+                <i class="bi bi-clipboard-check"></i>
+                <p>Your todo list is empty. Add an item to get started!</p>
+            </div>
+        }
+        else
+        {
+            <ul class="todo-list" id="sortable-list">
+                @foreach (var todo in TodoItems)
+                {
+                    <li class="todo-item @(todo.IsDone ? "todo-item-done" : "")" data-id="@todo.Id">
+                        <div class="status-toggle" @onclick="() => ToggleTodoStatus(todo.Id, !todo.IsDone)" title="@(todo.IsDone ? "Mark as not done" : "Mark as done")">
+                            @if (todo.IsDone)
+                            {
+                                <i class="bi bi-check-circle-fill"></i>
+                            }
+                            else
+                            {
+                                <i class="bi bi-circle"></i>
+                            }
+                        </div>
+
+                        <div class="drag-handle" title="Drag to reorder">
+                            <i class="bi bi-grip-vertical"></i>
+                        </div>
+                        @if (EditingTodoId == todo.Id)
+                        {
+                            <div class="edit-container">
+                                <input @bind="EditingTodoText" class="form-control" />
+                                <div class="action-buttons">
+                                    <button @onclick="() => SaveEdit(todo.Id)" class="btn btn-success btn-sm">
+                                        <i class="bi bi-check-lg"></i>
+                                    </button>
+                                    <button @onclick="CancelEdit" class="btn btn-light btn-sm">
+                                        <i class="bi bi-x-lg"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="todo-content">
+                                <span class="todo-text @(todo.IsDone ? "todo-text-done" : "")">@todo.Text</span>
+                                <div class="action-buttons">
+                                    <button @onclick="() => StartEdit(todo.Id, todo.Text)" class="btn btn-light btn-sm">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                    <button @onclick="() => DeleteTodoItem(todo.Id)" class="btn btn-light btn-sm">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        }
+                    </li>
+                }
+            </ul>
+        }
+    }
+    else
+    {
+        <div class="loading-container">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Redirecting...</span>
+            </div>
+            <p>Redirecting to CPR validation...</p>
+        </div>
+    }
+</div>
 
 @code {
+    private bool IsCprValidated { get; set; } = false;
+    private string NewTodoItem { get; set; } = string.Empty;
+    private List<TodoItem> TodoItems { get; set; } = new();
+    private int? EditingTodoId { get; set; } = null;
+    private string EditingTodoText { get; set; } = string.Empty;
+    private DotNetObjectReference<Todolist> objRef;
 
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await _authenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        var userName = user.Identity?.Name;
+
+        if (string.IsNullOrEmpty(userName))
+        {
+            _navigationManager.NavigateTo("/CprNr");
+            return;
+        }
+
+        try
+        {
+            IsCprValidated = await CprValidationService.HasCprNumberAsync(userName);
+
+            if (!IsCprValidated)
+            {
+                _navigationManager.NavigateTo("/CprNr");
+                return;
+            }
+
+            TodoItems = await TodoService.GetTodosAsync(userName);
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Error initializing TodoList: {ex.Message}");
+            _navigationManager.NavigateTo("/CprNr");
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            objRef = DotNetObjectReference.Create(this);
+            await InitializeSortable();
+        }
+        else if (IsCprValidated && TodoItems.Any())
+        {
+            // Reinitialize sortable when the list updates
+            await JSRuntime.InvokeVoidAsync("reinitSortable", "sortable-list", objRef);
+        }
+    }
+
+    private async Task InitializeSortable()
+    {
+        try
+        {
+            await JSRuntime.InvokeVoidAsync("initSortable", "sortable-list", objRef);
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Error initializing sortable: {ex.Message}");
+        }
+    }
+
+    [JSInvokable]
+    public async Task UpdateTodoOrder(int[] newOrder)
+    {
+        if (newOrder == null || newOrder.Length == 0)
+            return;
+
+        var orderedList = new List<TodoItem>();
+        foreach (var id in newOrder)
+        {
+            var item = TodoItems.FirstOrDefault(t => t.Id == id);
+            if (item != null)
+            {
+                orderedList.Add(item);
+            }
+        }
+
+        TodoItems = orderedList;
+        StateHasChanged();
+
+        // TODO: Implement server-side order persistence if needed
+    }
+
+    private async Task AddTodoItem()
+    {
+        if (string.IsNullOrWhiteSpace(NewTodoItem))
+            return;
+
+        var authState = await _authenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        var userName = user.Identity?.Name;
+
+        if (string.IsNullOrEmpty(userName))
+            return;
+
+        try
+        {
+            await TodoService.AddTodoAsync(userName, NewTodoItem);
+            TodoItems.Add(new TodoItem { Id = TodoItems.Count + 1, Text = NewTodoItem, IsDone = false }); // Simulate ID
+            NewTodoItem = string.Empty;
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Error adding Todo item: {ex.Message}");
+        }
+    }
+
+    private async Task DeleteTodoItem(int todoId)
+    {
+        var authState = await _authenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        var userName = user.Identity?.Name;
+
+        if (string.IsNullOrEmpty(userName))
+            return;
+
+        try
+        {
+            await TodoService.DeleteTodoAsync(todoId, userName);
+            TodoItems.RemoveAll(t => t.Id == todoId);
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Error deleting Todo item: {ex.Message}");
+        }
+    }
+
+    private void StartEdit(int todoId, string currentText)
+    {
+        EditingTodoId = todoId;
+        EditingTodoText = currentText;
+    }
+
+    private void CancelEdit()
+    {
+        EditingTodoId = null;
+        EditingTodoText = string.Empty;
+    }
+
+    private async Task SaveEdit(int todoId)
+    {
+        if (string.IsNullOrWhiteSpace(EditingTodoText))
+            return;
+
+        var authState = await _authenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        var userName = user.Identity?.Name;
+
+        if (string.IsNullOrEmpty(userName))
+            return;
+
+        try
+        {
+            await TodoService.EditTodoAsync(todoId, userName, EditingTodoText);
+            var todo = TodoItems.FirstOrDefault(t => t.Id == todoId);
+            if (todo != null)
+            {
+                todo.Text = EditingTodoText;
+            }
+            CancelEdit();
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Error editing Todo item: {ex.Message}");
+        }
+    }
+
+    private async Task ToggleTodoStatus(int todoId, bool isDone)
+    {
+        var authState = await _authenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        var userName = user.Identity?.Name;
+
+        if (string.IsNullOrEmpty(userName))
+            return;
+
+        try
+        {
+            await TodoService.ToggleTodoStatusAsync(todoId, userName, isDone);
+            var todo = TodoItems.FirstOrDefault(t => t.Id == todoId);
+            if (todo != null)
+            {
+                todo.IsDone = isDone;
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Error toggling todo status: {ex.Message}");
+        }
+    }
+
+    public void Dispose()
+    {
+        objRef?.Dispose();
+    }
 }
-

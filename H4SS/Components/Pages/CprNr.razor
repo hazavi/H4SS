@@ -1,11 +1,10 @@
 ﻿@page "/CprNr"
-@using H4SS.Data
 @inject Microsoft.AspNetCore.Components.Authorization.AuthenticationStateProvider _authenticationStateProvider
 @inject NavigationManager _navigationManager
-@inject TodoDbContext TodoContext
-@using Microsoft.EntityFrameworkCore
+@inject H4SS.Services.CprValidationService CprValidationService
+@using Microsoft.AspNetCore.Authorization
 
-@attribute [Microsoft.AspNetCore.Authorization.Authorize(Policy = "AuthenticatedUser")]
+@attribute [Authorize(Policy = "AuthenticatedUser")]
 
 <div class="cpr-container">
     <div class="cpr-card">
@@ -42,8 +41,8 @@
             </EditForm>
         </div>
 
-        <button class="btn btn-primary" @onclick="SubmitCprNumber">
-            @(HasCprNumber ? "Confirm" : "Register")
+        <button class="btn btn-primary" @onclick="SubmitCprNumber" disabled="@IsLoading">
+            @(IsLoading ? "Processing..." : (HasCprNumber ? "Confirm" : "Register"))
         </button>
 
         @if (!string.IsNullOrEmpty(Message))
@@ -62,7 +61,7 @@
     private bool HasCprNumber { get; set; } = false;
     private string? StoredHashedCpr { get; set; }
     private string? _userRoles;
-
+    private bool IsLoading { get; set; } = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -77,12 +76,11 @@
 
         _userRoles = string.Join(", ", roles);
 
-        // Check if the user already has a CPR number in the database
-        var existingCpr = await TodoContext.Cprs.FirstOrDefaultAsync(c => c.User == _userName);
-        if (existingCpr != null)
+        // Check if the user already has a CPR number
+        HasCprNumber = await CprValidationService.HasCprNumberAsync(_userName);
+        if (HasCprNumber)
         {
-            HasCprNumber = true;
-            StoredHashedCpr = existingCpr.CprNr;
+            StoredHashedCpr = await CprValidationService.GetStoredCprAsync(_userName);
         }
     }
 
@@ -94,16 +92,19 @@
             return;
         }
 
+        IsLoading = true;
+
         try
         {
-            Codes.HashingHandler hashingHandler = new();
-
             if (HasCprNumber)
             {
-                // Verify the entered CPR number matches the stored hashed CPR number
-                if (hashingHandler.BCryptVerifyHashing2(CprNumber, StoredHashedCpr))
+                // Validate the entered CPR number
+                bool isValid = await CprValidationService.ValidateCprAsync(_userName, CprNumber);
+                if (isValid)
                 {
                     Message = "CPR number confirmed successfully!";
+                    await Task.Delay(2000); // Add delay before navigation
+                    NavigateToTodoList();
                 }
                 else
                 {
@@ -112,25 +113,25 @@
             }
             else
             {
-                // Hash the CPR number and save it to the database
-                string hashedCpr = hashingHandler.BCryptHashing2(CprNumber);
-
-                var cpr = new Cpr
-                    {
-                        User = _userName,
-                        CprNr = hashedCpr,
-                    };
-
-                TodoContext.Add(cpr);
-                await TodoContext.SaveChangesAsync();
-
+                // Save the CPR number
+                await CprValidationService.SaveCprAsync(_userName, CprNumber);
                 Message = "CPR number saved successfully!";
-                CprNumber = string.Empty; // Clear the input field
+                await Task.Delay(2000); // Add delay before navigation
+                NavigateToTodoList();
             }
         }
         catch (Exception ex)
         {
             Message = $"An error occurred: {ex.Message}";
         }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    private void NavigateToTodoList()
+    {
+        _navigationManager.NavigateTo("/todolist");
     }
 }

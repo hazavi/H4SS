@@ -1,0 +1,355 @@
+﻿@page "/admin"
+@using Microsoft.AspNetCore.Authorization
+@using Data
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.EntityFrameworkCore
+@inject IServiceProvider _serviceProvider
+@inject UserManager<ApplicationUser> _userManager
+@inject RoleManager<IdentityRole> _roleManager
+@inject IJSRuntime JSRuntime
+
+@attribute [Authorize(Policy = "RequiredAdministratorRole")]
+
+<PageTitle>Admin Management</PageTitle>
+
+<AuthorizeView Roles="Admin">
+    <Authorized>
+        <div class="roles-admin-container">
+            <div class="admin-header">
+                <i class="bi bi-shield-lock me-2"></i>
+                <h1>Admin Management Panel</h1>
+            </div>
+
+            @if (!string.IsNullOrEmpty(statusMessage))
+            {
+                <div class="alert alert-@statusMessageType alert-dismissible fade show" role="alert">
+                    <i class="bi @statusMessageIcon me-2"></i>
+                    @statusMessage
+                    <button type="button" class="btn-close" @onclick="() => statusMessage = null"></button>
+                </div>
+            }
+
+            <div class="admin-cards-container">
+                <div class="admin-card user-directory-card">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-header bg-primary text-white">
+                            <h3 class="card-title mb-0">
+                                <i class="bi bi-people me-2"></i>User Directory
+                            </h3>
+                        </div>
+                        <div class="card-body">
+                            @if (users == null)
+                            {
+                                <div class="d-flex justify-content-center p-3">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">Loading...</span>
+                                    </div>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th scope="col">Email</th>
+                                                <th scope="col">Assigned Roles</th>
+                                                <th scope="col">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var user in users)
+                                            {
+                                                <tr>
+                                                    <td>
+                                                        <div class="d-flex align-items-center">
+                                                            <i class="bi bi-person-circle me-2 text-muted"></i>
+                                                            @user.Email
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        @if (user.Roles.Any())
+                                                        {
+                                                            @foreach (var role in user.Roles)
+                                                            {
+                                                                <span class="badge bg-@(role == "Admin" ? "danger" : "info") me-1">@role</span>
+                                                            }
+                                                        }
+                                                        else
+                                                        {
+                                                            <span class="text-muted">No roles assigned</span>
+                                                        }
+                                                    </td>
+                                                    <td>
+                                                        <div class="d-flex gap-2">
+                                                            <button class="btn btn-danger btn-sm" @onclick="() => ConfirmDeleteUser(user.Email)">
+                                                                <i class="bi bi-trash me-1"></i> Delete
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <div class="admin-card role-assignment-card">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-header bg-primary text-white">
+                            <h3 class="card-title mb-0">
+                                <i class="bi bi-person-fill-add me-2"></i>Assign Role
+                            </h3>
+                        </div>
+                        <div class="card-body">
+                            <EditForm Model="roleAssignment" OnValidSubmit="HandleAssignRole" Context="editContext">
+                                <DataAnnotationsValidator />
+                                <div class="alert alert-info">
+                                    <i class="bi bi-info-circle me-2"></i>
+                                    Select a user and assign a role to grant specific permissions
+                                </div>
+                                <ValidationSummary class="text-danger mb-3" />
+
+                                <div class="row mb-3">
+                                    <div class="col-md-12">
+                                        <div class="form-floating mb-3">
+                                            <InputText id="userEmail" class="form-control" placeholder="Email" @bind-Value="roleAssignment.UserEmail" />
+                                            <label for="userEmail">User Email</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12">
+                                        <div class="form-floating">
+                                            <InputSelect id="roleName" class="form-select" @bind-Value="roleAssignment.RoleName">
+                                                <option value="">Select a role...</option>
+                                                <option value="Admin">Admin</option>
+                                            </InputSelect>
+                                            <label for="roleName">Role</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="d-grid gap-2">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="bi bi-check2-circle me-1"></i> Assign Role
+                                    </button>
+                                </div>
+                            </EditForm>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @if (showDeleteConfirmation)
+        {
+            <div class="modal fade show" style="display: block; background-color: rgba(0,0,0,0.5);" tabindex="-1" role="dialog">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header bg-danger text-white">
+                            <h5 class="modal-title">
+                                <i class="bi bi-exclamation-triangle me-2"></i>
+                                Confirm User Deletion
+                            </h5>
+                            <button type="button" class="btn-close btn-close-white" @onclick="CancelDelete"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p class="mb-2">Are you sure you want to delete the following user?</p>
+                            <div class="alert alert-warning">
+                                <i class="bi bi-person-x me-2"></i>
+                                <strong>@userToDelete</strong>
+                            </div>
+                            <p class="text-danger">
+                                <i class="bi bi-exclamation-circle me-1"></i>
+                                This action cannot be undone. All user data will be permanently removed.
+                            </p>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" @onclick="CancelDelete">
+                                <i class="bi bi-x-lg me-1"></i> Cancel
+                            </button>
+                            <button type="button" class="btn btn-danger" @onclick="DeleteUser">
+                                <i class="bi bi-trash me-1"></i> Delete User
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </Authorized>
+    <NotAuthorized>
+        <div class="access-denied">
+            <div class="card text-center shadow">
+                <div class="card-body p-5">
+                    <i class="bi bi-shield-exclamation display-1 text-warning mb-3"></i>
+                    <h2>Access Restricted</h2>
+                    <p class="lead">This page requires administrator privileges.</p>
+                    <hr />
+                    <p>Please contact an administrator if you need access to this feature.</p>
+                </div>
+            </div>
+        </div>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    private List<UserWithRoles> users;
+    private List<string> roles = new List<string>();
+    private RoleAssignmentModel roleAssignment = new();
+    private bool showDeleteConfirmation = false;
+    private string userToDelete;
+    private string statusMessage;
+    private string statusMessageType;
+    private string statusMessageIcon;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadUsersAsync();
+        await LoadRolesAsync();
+        await CreateUserRoleAsync("haz@tec.dk", "Admin");
+    }
+
+    private async Task LoadUsersAsync()
+    {
+        var allUsers = _userManager.Users.ToList();
+        users = new List<UserWithRoles>();
+
+        foreach (var user in allUsers)
+        {
+            var userRoles = await _userManager.GetRolesAsync(user);
+            users.Add(new UserWithRoles
+                {
+                    Email = user.Email,
+                    Roles = userRoles
+                });
+        }
+    }
+
+    private async Task LoadRolesAsync()
+    {
+        roles = await _roleManager.Roles.Select(r => r.Name).ToListAsync();
+    }
+
+    private async Task HandleAssignRole()
+    {
+        var user = await _userManager.FindByEmailAsync(roleAssignment.UserEmail);
+        if (user != null)
+        {
+            var roleExists = await _roleManager.RoleExistsAsync(roleAssignment.RoleName);
+            if (!roleExists)
+            {
+                var roleResult = await _roleManager.CreateAsync(new IdentityRole(roleAssignment.RoleName));
+                if (!roleResult.Succeeded)
+                {
+                    SetStatusMessage("Failed to create role.", "danger", "bi-x-circle");
+                    return;
+                }
+            }
+
+            var result = await _userManager.AddToRoleAsync(user, roleAssignment.RoleName);
+
+            if (result.Succeeded)
+            {
+                SetStatusMessage($"Role '{roleAssignment.RoleName}' assigned successfully to {user.Email}.", "success", "bi-check-circle");
+                await LoadUsersAsync(); // Refresh the user list
+            }
+            else
+            {
+                SetStatusMessage("Failed to assign role. " + string.Join(", ", result.Errors.Select(e => e.Description)), "danger", "bi-x-circle");
+            }
+        }
+        else
+        {
+            SetStatusMessage($"User with email {roleAssignment.UserEmail} not found.", "warning", "bi-exclamation-triangle");
+        }
+    }
+
+    private async Task CreateUserRoleAsync(string user, string role)
+    {
+        var roleManager = _serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+
+        var userRoleCheck = await roleManager.RoleExistsAsync(role);
+        if (!userRoleCheck)
+            await roleManager.CreateAsync(new IdentityRole(role));
+
+        ApplicationUser identityUser = await _userManager.FindByEmailAsync(user);
+        if (identityUser != null)
+        {
+            await _userManager.AddToRoleAsync(identityUser, role);
+        }
+    }
+
+    private void ConfirmDeleteUser(string email)
+    {
+        userToDelete = email;
+        showDeleteConfirmation = true;
+    }
+
+    private void CancelDelete()
+    {
+        userToDelete = null;
+        showDeleteConfirmation = false;
+    }
+
+    private async Task DeleteUser()
+    {
+        if (string.IsNullOrEmpty(userToDelete))
+            return;
+
+        var user = await _userManager.FindByEmailAsync(userToDelete);
+        if (user != null)
+        {
+            // Check if user is current admin and prevent self-deletion
+            var currentAdmin = "haz@tec.dk"; // Replace with dynamic way to get current user
+            if (userToDelete.Equals(currentAdmin, StringComparison.OrdinalIgnoreCase))
+            {
+                SetStatusMessage("You cannot delete your own admin account.", "warning", "bi-exclamation-triangle");
+                showDeleteConfirmation = false;
+                return;
+            }
+
+            // Delete related data for this user (todo items, CPR entries, etc.)
+            // This would need to be implemented based on your data structure
+
+            // Delete the user
+            var result = await _userManager.DeleteAsync(user);
+            if (result.Succeeded)
+            {
+                SetStatusMessage($"User {userToDelete} has been deleted successfully.", "success", "bi-check-circle");
+                await LoadUsersAsync(); // Refresh users list
+            }
+            else
+            {
+                SetStatusMessage("Failed to delete user: " + string.Join(", ", result.Errors.Select(e => e.Description)), "danger", "bi-x-circle");
+            }
+        }
+        else
+        {
+            SetStatusMessage($"User {userToDelete} not found.", "warning", "bi-exclamation-triangle");
+        }
+
+        // Close the confirmation dialog
+        showDeleteConfirmation = false;
+    }
+
+    private void SetStatusMessage(string message, string type, string icon)
+    {
+        statusMessage = message;
+        statusMessageType = type;
+        statusMessageIcon = icon;
+        StateHasChanged();
+    }
+
+    private class UserWithRoles
+    {
+        public string Email { get; set; }
+        public IList<string> Roles { get; set; }
+    }
+
+    private class RoleAssignmentModel
+    {
+        public string UserEmail { get; set; }
+        public string RoleName { get; set; }
+    }
+}

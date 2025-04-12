@@ -12,7 +12,7 @@ namespace H4SS.Codes
         {
             if (!Directory.Exists("Keys"))
                 Directory.CreateDirectory("Keys");
-            if (!File.Exists(@"Keys\privateKey.pem,") || !File.Exists(@"Keys\publicKey.pem"))
+            if (!File.Exists(@"Keys\privateKey.pem") || !File.Exists(@"Keys\publicKey.pem"))
             {
                 using (RSA rsa = RSA.Create(2048))
                 {
@@ -20,15 +20,16 @@ namespace H4SS.Codes
                     _privateKey = "-----BEGIN PRIVATE KEY-----\n" +
                         Convert.ToBase64String(privateKeyBytes, Base64FormattingOptions.InsertLineBreaks) +
                         "\n-----END PRIVATE KEY-----";
+                    File.WriteAllText(@"Keys\privateKey.pem", _privateKey);
 
                     byte[] publicKeyBytes = rsa.ExportSubjectPublicKeyInfo();
                     _publicKey = "-----BEGIN PUBLIC KEY-----\n" +
                         Convert.ToBase64String(publicKeyBytes, Base64FormattingOptions.InsertLineBreaks) +
                         "\n-----END PUBLIC KEY-----";
-
+                    File.WriteAllText(@"Keys\publicKey.pem", _publicKey);
                 }
-
             }
+
             else
             {
                 _privateKey = File.ReadAllText(@"Keys\privateKey.pem");
@@ -45,49 +46,50 @@ namespace H4SS.Codes
 
         public async Task<string> EncryptAsymetrisk(string valueToEncrypt)
         {
-            //using (RSACryptoServiceProvider rsa = new RSACryptoServiceProvider())
-            //{
-            //    string publicKey = _publicKey
-            //        .Replace("-----BEGIN PUBLIC KEY-----", "")
-            //        .Replace("-----END PUBLIC KEY-----", "")
-            //        .Replace("\n", "").Replace("\r", "").Trim();
-
-            //    byte[] publicKeyBytes = Convert.FromBase64String(publicKey);
-
-            //    rsa.ImportSubjectPublicKeyInfo(publicKeyBytes, out _);
-
-            //    byte[] valueToEncryptAsBytes = Encoding.UTF8.GetBytes(valueToEncrypt);
-            //    byte[] encryptValueBytes = rsa.Encrypt(valueToEncryptAsBytes, true);
-            //    return Convert.ToBase64String(encryptValueBytes);
-            //}
             HttpClient client = new();
-            var value = await client.GetAsync($"https://localhost:7024/encrypt?publicKey={_publicKey}&valueToEncrypt={valueToEncrypt}");
-            if (value.IsSuccessStatusCode)
+            var encodedPublicKey = Uri.EscapeDataString(_publicKey);
+            var encodedValueToEncrypt = Uri.EscapeDataString(valueToEncrypt);
+
+            var response = await client.GetAsync($"https://localhost:7259/api/encrypt?publicKey={encodedPublicKey}&valueToEncrypt={encodedValueToEncrypt}");
+            if (response.IsSuccessStatusCode)
             {
-                var result = await value.Content.ReadAsStringAsync();
+                var result = await response.Content.ReadAsStringAsync();
                 return result;
             }
             else
             {
-                throw new Exception("Error in encryption");
+                var errorContent = await response.Content.ReadAsStringAsync();
+                Console.Error.WriteLine($"API Error: {response.StatusCode} - {errorContent}");
+                throw new Exception($"Error in encryption: {response.StatusCode} - {errorContent}");
             }
-
-            //string result = call web api(publickey, valueToEncrypt)
         }
+
 
         public async Task<string> DecryptAsymetrisk(string valueToDecrypt)
         {
             HttpClient client = new();
-            var value = await client.GetAsync($"https://localhost:7024/decrypt?privateKey={_privateKey}&valueToDecrypt={valueToDecrypt}");
-            if (value.IsSuccessStatusCode)
+            var encodedPrivateKey = Uri.EscapeDataString(_privateKey);
+            var encodedValueToDecrypt = Uri.EscapeDataString(valueToDecrypt);
+
+            var requestUrl = $"https://localhost:7259/api/decrypt?privateKey={encodedPrivateKey}&valueToDecrypt={encodedValueToDecrypt}";
+            Console.WriteLine($"Request URL: {requestUrl}");
+
+            var response = await client.GetAsync(requestUrl);
+            if (response.IsSuccessStatusCode)
             {
-                var result = await value.Content.ReadAsStringAsync();
+                var result = await response.Content.ReadAsStringAsync();
                 return result;
             }
             else
             {
-                throw new Exception("Error in encryption");
+                var errorContent = await response.Content.ReadAsStringAsync();
+                Console.Error.WriteLine($"API Error: {response.StatusCode} - {errorContent}");
+                throw new Exception($"Error in decryption: {response.StatusCode} - {errorContent}");
             }
         }
+
+
+
+
     }
 }

@@ -1,0 +1,386 @@
+﻿/* Todolist.razor.css - Fixed colors */
+.todo-container {
+    max-width: 650px; /* Reduced width */
+    margin: 0 auto;
+    padding: 2rem;
+    background-color: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
+}
+
+.todo-title {
+    color: #1f2937;
+    margin-bottom: 1.75rem;
+    font-weight: 600;
+    border-bottom: 2px solid #e5e7eb;
+    padding-bottom: 15px;
+    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+}
+
+    .todo-title i {
+        color: #4a6cf7;
+        margin-right: 0.5rem;
+    }
+
+.add-todo-container {
+    margin-bottom: 1.75rem;
+}
+
+.input-group {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+    .input-group .form-control {
+        border-color: #e5e7eb;
+        padding: 0.7rem 1rem;
+        font-size: 0.95rem;
+        border-right: none;
+    }
+
+        .input-group .form-control:focus {
+            box-shadow: none;
+            border-color: #4a6cf7;
+        }
+
+    .input-group .btn-primary {
+        background-color: #4a6cf7;
+        border-color: #4a6cf7;
+        padding: 0 1.25rem;
+        font-weight: 500;
+        transition: all 0.2s ease;
+    }
+
+        .input-group .btn-primary:hover {
+            background-color: #3a5be0;
+            border-color: #3a5be0;
+            transform: translateY(-1px);
+        }
+
+.input-group-text {
+    border-color: #e5e7eb;
+    border-right: none;
+    padding-left: 1rem;
+    background-color: #fff;
+}
+
+    .input-group-text i {
+        color: #4a6cf7;
+    }
+
+.todo-list {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+}
+
+.todo-item {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #e5e7eb;
+    background-color: #fff;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    cursor: default;
+}
+
+    .todo-item:hover {
+        background-color: #f9fafb;
+    }
+
+    .todo-item:last-child {
+        border-bottom: none;
+    }
+
+.drag-handle {
+    color: #ccc;
+    margin-right: 12px;
+    cursor: grab;
+    opacity: 0.5;
+    transition: all 0.2s;
+    padding: 5px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+}
+
+.todo-item:hover .drag-handle {
+    opacity: 0.8;
+    color: #6b7280;
+}
+
+.drag-handle:hover {
+    opacity: 1;
+    color: #1f2937;
+    background-color: #f0f0f0;
+}
+
+.drag-handle:active {
+    cursor: grabbing;
+}
+
+.todo-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    min-height: 38px;
+}
+
+.todo-text {
+    flex-grow: 1;
+    margin-right: 10px;
+    color: #1f2937;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    word-break: break-word;
+}
+
+.edit-container {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    gap: 10px;
+}
+
+    .edit-container .form-control {
+        flex-grow: 1;
+        border-radius: 6px;
+        border-color: #e5e7eb;
+        padding: 0.5rem 0.75rem;
+        font-size: 0.95rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+        transition: all 0.2s;
+    }
+
+        .edit-container .form-control:focus {
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+            border-color: #6366f1;
+        }
+
+.action-buttons {
+    display: flex;
+    gap: 6px;
+    white-space: nowrap;
+}
+
+    .action-buttons .btn {
+        width: 32px;
+        height: 32px;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 6px;
+        transition: all 0.2s;
+    }
+
+        .action-buttons .btn i {
+            font-size: 0.9rem;
+        }
+
+    /* Button styles with better colors */
+    .action-buttons .btn-success {
+        background-color: #10b981;
+        border-color: #10b981;
+        color: white;
+    }
+
+        .action-buttons .btn-success:hover {
+            background-color: #0ea271;
+            border-color: #0ea271;
+            transform: translateY(-1px);
+        }
+
+    .action-buttons .btn-light {
+        background-color: #f9fafb;
+        border-color: #e5e7eb;
+    }
+
+        /* Edit button - purple */
+        .action-buttons .btn-light:nth-child(1) {
+            color: #6366f1;
+        }
+
+            .action-buttons .btn-light:nth-child(1):hover {
+                background-color: #6366f1;
+                border-color: #6366f1;
+                color: white;
+            }
+
+        /* Delete button - red */
+        .action-buttons .btn-light:nth-child(2) {
+            color: #ef4444;
+        }
+
+            .action-buttons .btn-light:nth-child(2):hover {
+                background-color: #ef4444;
+                border-color: #ef4444;
+                color: white;
+            }
+
+        /* Cancel button - grey */
+        .action-buttons .btn-light:last-child {
+            color: #6b7280;
+        }
+
+            .action-buttons .btn-light:last-child:hover {
+                background-color: #6b7280;
+                border-color: #6b7280;
+                color: white;
+            }
+
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2.5rem 0;
+    color: #6b7280;
+    text-align: center;
+    background-color: #f9fafb;
+    border-radius: 8px;
+    border: 1px dashed #e5e7eb;
+}
+
+    .empty-state i {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+        color: #a1a1aa;
+    }
+
+    .empty-state p {
+        font-size: 1rem;
+        max-width: 300px;
+        margin-bottom: 0;
+    }
+
+.loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2.5rem 0;
+}
+
+    .loading-container .spinner-border {
+        color: #4a6cf7 !important;
+        margin-bottom: 1rem;
+    }
+
+    .loading-container p {
+        margin-top: 0.5rem;
+        color: #6b7280;
+    }
+
+.status-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    margin-right: 10px;
+    padding: 5px;
+    border-radius: 50%;
+    transition: all 0.2s;
+}
+
+    .status-toggle:hover {
+        background-color: #f0f0f0;
+    }
+
+    .status-toggle i {
+        font-size: 1.2rem;
+    }
+
+    .status-toggle .bi-circle {
+        color: #cbd5e1;
+    }
+
+    .status-toggle .bi-check-circle-fill {
+        color: #4ade80;
+    }
+
+.todo-item-done {
+    background-color: #f8fafc;
+}
+
+.todo-text-done {
+    text-decoration: line-through;
+    color: #94a3b8;
+}
+
+/* Adjust spacing with the new toggle button */
+.drag-handle {
+    margin-right: 8px; /* Reduced from 12px */
+}
+
+
+/* Sortable styles */
+.sortable-ghost {
+    opacity: 0.5;
+    background-color: #f3f4f7 !important;
+    border: 1px dashed #d1d5db !important;
+}
+
+.sortable-drag {
+    background-color: #fff !important;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1) !important;
+    border-radius: 8px !important;
+    border: 1px solid #e5e7eb !important;
+    opacity: 0.9 !important;
+}
+
+/* Animation for adding/removing items */
+.todo-item {
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(5px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsive adjustments */
+@media (max-width: 576px) {
+    .todo-container {
+        padding: 1.5rem;
+        border-radius: 8px;
+        margin: 0 auto;
+        width: 95%;
+    }
+
+    .todo-content {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .todo-text {
+        margin-bottom: 0.75rem;
+        width: 100%;
+    }
+
+    .action-buttons {
+        margin-left: auto;
+    }
+
+    .edit-container {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+        .edit-container .action-buttons {
+            margin-top: 0.75rem;
+            justify-content: flex-end;
+        }
+}
