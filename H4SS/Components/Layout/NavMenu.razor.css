@@ -1,223 +1,332 @@
-/* Make navbar narrow and center icons */
+/* Wider sidebar with text and icons */
 .sidebar {
-    width: 70px !important;
+    width: 240px !important;
 }
 
-/* Hide category headers */
-.nav-category {
-    display: none;
-}
-
-/* Top row styling for clean minimal view */
+/* Top row styling with improved branding */
 .top-row {
-    min-height: 3.5rem;
-    background-color: rgba(0, 0, 0, 0.80);
-    box-shadow: none;
+    min-height: 4rem;
+    background: #f8f9fa; /* Off-white background */
+    border-bottom: 1px solid rgba(0, 0, 0, 0.07);
     padding: 0;
-    justify-content: center;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
 }
 
 .navbar-brand {
-    font-size: 1.3rem;
-    font-weight: 700;
+    font-size: 1.4rem; /* Larger font */
+    font-weight: 600;
     display: flex;
     align-items: center;
-    justify-content: center;
-    transition: transform 0.2s ease;
+    padding: 0.75rem 1.2rem;
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94); /* Smoother transition */
+    gap: 12px;
+    color: #2c3e50; /* Dark color for contrast */
 }
 
     .navbar-brand:hover {
-        transform: scale(1.05);
+        transform: scale(1.03);
+        color: #3498db;
     }
 
 .navbar-logo {
-    width: 24px;
-    height: 24px;
-    margin: 0;
+    width: 30px; /* Larger logo */
+    height: 30px;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
 }
 
-/* Center container */
+.brand-text {
+    margin-left: 4px;
+    letter-spacing: 0.5px;
+    font-weight: 500;
+}
+
+/* Container styling */
 .container-fluid {
-    justify-content: center !important;
     padding: 0;
 }
 
-/* Style icons using Bootstrap Icon classes - clean and minimal */
-.custom-icon {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 1.25rem;
-    color: rgba(255, 255, 255, 0.3);
-    margin: 0;
-    transition: all 0.2s ease;
+/* Nav icons styling - larger size */
+.nav-icon {
+    font-size: 1.5rem; /* Larger icons */
+    color: #495057;
+    margin-right: 16px;
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    display: inline-block;
+    width: 28px; /* Wider for larger icons */
+    text-align: center;
 }
 
-.nav-link:hover .custom-icon {
-    transform: scale(1.15);
-    color: white;
-}
-
+/* Elegant divider with gradient */
 .nav-divider {
     height: 1px;
-    background-color: rgba(255, 255, 255, 0.1);
-    margin: 0.5rem auto;
-    width: 40%;
+    background: linear-gradient(90deg, rgba(0, 0, 0, 0.02), rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.02));
+    margin: 1rem 1.25rem;
 }
-
-/* Center the nav items - remove padding */
-.nav-item {
-    font-size: 0.9rem;
-    padding: 0;
-    margin: 0.35rem 0;
-    text-align: center;
-}
-
-    .nav-item .nav-link {
-        justify-content: center !important;
-        padding: 0.5rem 0;
-        margin: 0;
-        position: relative;
-        background: transparent !important; /* Remove all backgrounds */
-    }
-
-/* Clean tooltip styling */
-.tooltip-container {
-    position: relative;
+/* Account info styled like nav item */
+.account-info {
+    background-color: transparent;
+    color: #343a40;
     display: flex;
     align-items: center;
-    justify-content: center;
+    padding: 0.8rem 1.2rem;
+    margin: 0 0.75rem;
+    border-radius: 8px;
+    font-size: 1.05rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
 }
 
-/* Fix for tooltip position - move tooltips up a bit */
-.tooltip-text {
-    visibility: hidden;
-    position: absolute;
-    left: 70px;
-    top: 30%;
-    transform: translateY(-50%);
-    background-color: rgba(0, 0, 0, 0.85);
-    color: white;
-    text-align: center;
-    padding: 5px 10px;
-    border-radius: 4px;
-    z-index: 1040;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.15s ease;
-    font-size: 0.85rem;
+    .account-info .nav-icon {
+        color: #495057;
+        font-size: 1.5rem;
+        margin-right: 16px;
+        width: 28px;
+        text-align: center;
+    }
+
+/* Nav items with improved spacing */
+.nav-item {
+    padding: 0;
+    margin: 5px 0; /* More spacing between items */
+}
+
+.nav-text {
+    font-size: 1.05rem; /* Larger text */
+    font-weight: 500;
+    color: #343a40;
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    letter-spacing: 0.2px; /* Small letter spacing for readability */
+}
+/* Ensure nav-link aligns icon + text in a row without wrapping */
+.nav-link.nav-account-link {
     white-space: nowrap;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: flex;
+    align-items: center;
 }
 
-    /* Add arrow to tooltip */
-    .tooltip-text::before {
+/* Ensure text truncates properly */
+.nav-text.text-truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex-grow: 1;
+    display: inline-block;
+}
+
+/* Prevent admin badge from causing wrapping */
+.admin-badge {
+    display: inline-block;
+    margin-left: 6px;
+    vertical-align: middle;
+    white-space: nowrap;
+}
+
+.admin-badge {
+    font-size: 0.75rem;
+    background-color: rgba(52, 152, 219, 0.15);
+    color: #3498db;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-left: 8px;
+    vertical-align: middle;
+    box-shadow: 0 0 4px rgba(52, 152, 219, 0.1);
+    font-weight: 500;
+}
+
+.nav-item .nav-link {
+    display: flex;
+    align-items: center;
+    padding: 0.8rem 1.2rem; /* More padding */
+    margin: 0 0.75rem;
+    border-radius: 8px; /* More rounded corners */
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    text-decoration: none;
+    position: relative;
+    overflow: hidden;
+    background-color: transparent;
+}
+
+/* Hover effect with subtle background and transform */
+.nav-link:hover {
+    background-color: rgba(52, 152, 219, 0.05);
+    transform: translateX(3px); /* Slight shift on hover */
+}
+
+    .nav-link:hover .nav-icon {
+        color: #3498db;
+        transform: scale(1.1);
+    }
+
+    .nav-link:hover .nav-text {
+        color: #3498db;
+    }
+
+/* Active item styling with enhanced indicator */
+.nav-item a.active {
+    background: rgba(52, 152, 219, 0.08);
+    position: relative;
+}
+
+    .nav-item a.active .nav-icon,
+    .nav-item a.active .nav-text {
+        color: #3498db;
+        font-weight: 600;
+    }
+
+    /* Enhanced indicator for active item */
+    .nav-item a.active::before {
         content: "";
         position: absolute;
+        left: 0;
         top: 50%;
-        right: 100%;
-        margin-top: -5px;
-        border-width: 5px;
-        border-style: solid;
-        border-color: transparent rgba(0, 0, 0, 0.85) transparent transparent;
+        transform: translateY(-50%);
+        width: 4px;
+        height: 65%;
+        background: #3498db;
+        border-radius: 0 2px 2px 0;
+        box-shadow: 0 0 8px rgba(52, 152, 219, 0.3);
     }
 
-/* Show the tooltip on hover */
-.tooltip-container:hover .tooltip-text {
-    visibility: visible;
-    opacity: 1;
-}
-
-/* Clean active item styling - subtle highlight without background - REMOVED THE CIRCLE */
-.nav-item ::deep a.active .custom-icon {
-    color: white;
-    text-shadow: 0 0 10px rgba(255,255,255,0.5);
-}
-
-/* REMOVED the ::after element that was creating the circle */
-
-/* Remove hover backgrounds entirely */
-.nav-item ::deep .nav-link:hover {
-    background: transparent !important;
-}
-
-/* Logout button styling - centered */
+/* Logout button styling - refined */
 .logout-button {
-    color: rgba(255, 180, 180, 0.8) !important;
-    width: 100%;
     display: flex;
     align-items: center;
-    justify-content: center;
+    width: 100%;
     background: none !important;
     border: none;
-    padding: 0;
-    margin: 0 auto;
-    position: relative;
-    height: 40px;
+    padding: 0.8rem 1.2rem;
+    margin: 0 0.75rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    text-align: left;
+    color: #dc3545 !important;
 }
 
     .logout-button:hover {
-        color: #ffcccc !important;
+        background-color: rgba(220, 53, 69, 0.08);
+        transform: translateX(3px);
     }
 
-    .logout-button .custom-icon {
-        color: rgba(255, 180, 180, 0.8);
-        margin: 0 auto;
+    .logout-button .nav-icon {
+        color: #dc3545;
     }
 
-    .logout-button:hover .custom-icon {
-        color: #ffcccc;
+    .logout-button:hover .nav-icon {
+        transform: scale(1.1);
     }
 
-/* Form in nav item should be centered too */
+/* Form in nav item styling */
 .nav-item form {
     display: flex;
     justify-content: center;
     width: 100%;
 }
 
-/* Nav scrollable area styling - cleaner */
+/* Nav scrollable area styling with off-white background */
 .nav-scrollable {
     display: block;
-    background: rgba(0, 0, 0, 0.85);
-    height: calc(100vh - 3.5rem);
+    background: #f7f7f7; /* Off-white background */
+    height: calc(100vh - 4rem);
     overflow-y: auto;
-    padding: 0;
-    scrollbar-width: none; /* Hide scrollbar for cleaner look */
+    padding: 0.85rem 0;
+    border-right: 1px solid rgba(0, 0, 0, 0.05);
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0, 0, 0, 0.15) transparent;
+    box-shadow: inset 0 5px 10px -5px rgba(0, 0, 0, 0.03);
 }
 
-    /* Hide scrollbar for cleaner look */
+    /* Scrollbar styling for WebKit browsers */
     .nav-scrollable::-webkit-scrollbar {
-        width: 0;
-        display: none;
+        width: 6px;
+        height: 6px;
     }
 
-/* Remove padding from navbar items */
-@media (min-width: 641px) {
-    .px-3 {
-        padding-left: 0 !important;
-        padding-right: 0 !important;
+    .nav-scrollable::-webkit-scrollbar-track {
+        background: rgba(0, 0, 0, 0.02);
+        border-radius: 3px;
     }
 
-    /* Ensure tooltip appears beside the icon */
-    .tooltip-container {
-        position: static;
-    }
-}
-
-/* Mobile layout adjustments */
-@media (max-width: 640px) {
-    .tooltip-text {
-        left: auto;
-        right: 100%;
-        top: 30%;
-        margin-left: 0;
-        margin-right: 10px;
+    .nav-scrollable::-webkit-scrollbar-thumb {
+        background-color: rgba(0, 0, 0, 0.1);
+        border-radius: 3px;
+        transition: background-color 0.3s ease;
     }
 
-        .tooltip-text::before {
-            left: 100%;
-            right: auto;
-            border-color: transparent transparent transparent rgba(0, 0, 0, 0.85);
+        .nav-scrollable::-webkit-scrollbar-thumb:hover {
+            background-color: rgba(0, 0, 0, 0.2);
         }
+
+/* Media query adjustments for responsive design */
+@media (max-width: 768px) {
+    /* For tablets and mobile */
+    .sidebar {
+        width: 100% !important;
+        height: auto;
+    }
+
+    .nav-scrollable {
+        height: auto;
+        max-height: 300px;
+    }
+
+    .nav-item .nav-link {
+        padding: 0.8rem 1.2rem; /* Larger touch targets on mobile */
+    }
 }
+
+/* Animation for menu items */
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.nav-item {
+    animation: slideIn 0.3s ease-out forwards;
+    animation-delay: calc(var(--animation-order, 0) * 0.05s);
+    opacity: 0;
+}
+
+    /* Apply animation delays to items in order */
+    .nav-item:nth-child(1) {
+        --animation-order: 1;
+    }
+
+    .nav-item:nth-child(2) {
+        --animation-order: 2;
+    }
+
+    .nav-item:nth-child(3) {
+        --animation-order: 3;
+    }
+
+    .nav-item:nth-child(4) {
+        --animation-order: 4;
+    }
+
+    .nav-item:nth-child(5) {
+        --animation-order: 5;
+    }
+
+    .nav-item:nth-child(6) {
+        --animation-order: 6;
+    }
+
+    .nav-item:nth-child(7) {
+        --animation-order: 7;
+    }
+
+    /* Add subtle hover effect to entire nav items */
+    .nav-item:hover {
+        transform: translateY(-1px);
+        transition: transform 0.3s ease;
+    }
