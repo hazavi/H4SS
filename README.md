@@ -3,7 +3,22 @@
 Todoist is a Blazor-based web application built with .NET 9.
 
 ---
+## Register
+![image](https://github.com/user-attachments/assets/60908a9e-d79d-4c97-a578-f37baa3b4727)
 
+## Login
+![image](https://github.com/user-attachments/assets/f5a59dc5-2eea-4025-9087-959f2627b221)
+
+## Admin Management Panel
+![image](https://github.com/user-attachments/assets/c14e3be4-e595-4041-be67-9a0e860fa55b)
+
+## CPR Verification
+![image](https://github.com/user-attachments/assets/a361fe8b-419a-417a-93f9-e53e321e116f)
+
+## Todolist
+![image](https://github.com/user-attachments/assets/f36bf2dc-c03b-41b5-aad0-373de058816b)
+
+---
 ## Features
 
 - **Todo List Management**: Create, update, and manage tasks.
